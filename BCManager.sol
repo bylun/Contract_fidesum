@@ -1,6 +1,7 @@
 pragma solidity ^0.4.25;
 import "./Table.sol";
 import "./ConstantDef.sol";
+import "./TableNameDef.sol";
 import "./StatisticService.sol";
 
 /*
@@ -9,9 +10,11 @@ import "./StatisticService.sol";
 contract BCManager {
     
     ConstantDef constantDef;
+    TableNameDef tableNameDef;
     TableFactory tableFactory;
     StatisticService statisticService;
-    string constant TABLE_NAME_BLOCKCHAIN_MANAGER = "bcmanager_202008191640";
+    
+    string table_name;
     
     event eventPutManager(string status,string remark);
     event eventUpdateManagerMaintainValue(string status,string remark);
@@ -21,7 +24,10 @@ contract BCManager {
     constructor() public {
         
         constantDef = new ConstantDef(); // 初始化通用合约
+        tableNameDef = new TableNameDef();
         statisticService = new StatisticService(); // 初始化统计合约
+        
+        table_name = tableNameDef.constantBCManager();
         
         // managerId 管理方标识
         // managerNameShort 管理方简称
@@ -31,7 +37,7 @@ contract BCManager {
         // status 状态 0 正常；1 不可用
         // addTime 添加时间
         tableFactory = TableFactory(0x1001); 
-        tableFactory.createTable(TABLE_NAME_BLOCKCHAIN_MANAGER, "manager", "managerId,managerNameShort,manager_init_value,maintainValue,managerHash,status,addTime");
+        tableFactory.createTable(table_name, "manager", "managerId,managerNameShort,manager_init_value,maintainValue,managerHash,status,addTime");
     }
     
     /*
@@ -51,7 +57,7 @@ contract BCManager {
             return -1;
         }
         
-        Table table = tableFactory.openTable(TABLE_NAME_BLOCKCHAIN_MANAGER);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("managerId", managerId);
         entry.set("managerNameShort",managerNameShort);
@@ -87,7 +93,7 @@ contract BCManager {
             1 ： 管理方信息已存在；
     */
     function getManager(string managerId,string managerHash) public view returns(int256) {
-        Table table = tableFactory.openTable(TABLE_NAME_BLOCKCHAIN_MANAGER);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("managerId",managerId);
@@ -110,7 +116,7 @@ contract BCManager {
             参数二： 管理方存在时返回对应管理方所累积的记账费总额，管理方不存在时返回0
     */
     function getManagerInitValue() public view returns(uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_BLOCKCHAIN_MANAGER);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("status",int256(0)); // 管理方状态，查询状态正常的管理方信息
@@ -134,7 +140,7 @@ contract BCManager {
     */
     function updateManagerIniValue(uint iniValue) public returns (int256) {
         uint256 _per = getManagerInitValue();
-        Table table = tableFactory.openTable(TABLE_NAME_BLOCKCHAIN_MANAGER);
+        Table table = tableFactory.openTable(table_name);
         Entry entry0 = table.newEntry();
         entry0.set("manager_init_value", _per += iniValue*7); // 出去时除以7
         Condition condition = table.newCondition();
@@ -162,7 +168,7 @@ contract BCManager {
             参数二： 管理方存在时返回对应管理方所累积的区块链维护费，管理方不存在时返回0
     */
     function getManagerMaintainValue() public view returns(uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_BLOCKCHAIN_MANAGER);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("status",int256(0)); 
@@ -186,7 +192,7 @@ contract BCManager {
     */
     function updateManagerMaintainValue(uint maintainValue) public returns (int256) {
         uint256 _pre = getManagerMaintainValue();
-        Table table = tableFactory.openTable(TABLE_NAME_BLOCKCHAIN_MANAGER);
+        Table table = tableFactory.openTable(table_name);
         Entry entry0 = table.newEntry();
         entry0.set("maintainValue", _pre += maintainValue);
         Condition condition = table.newCondition();

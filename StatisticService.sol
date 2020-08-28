@@ -1,6 +1,7 @@
 pragma solidity ^0.4.25;
 import "./Table.sol";
 import "./ConstantDef.sol";
+import "./TableNameDef.sol";
 
 /*
     统计服务合约
@@ -9,12 +10,16 @@ contract StatisticService {
     
     ConstantDef constantDef;
     TableFactory tableFactory;
-    string constant TABLE_NAME_STATICSTIC = "statistic_202008191640";
+    TableNameDef tableNameDef;
+    string table_name;
     
     // 初始化
     constructor() public {
         
         constantDef = new ConstantDef(); // 初始化通用合约
+        tableNameDef = new TableNameDef();
+        
+        table_name = tableNameDef.constantStatisticService();
         
         // total_user 用户总数
         // total_nodeBookkeepping 节点记账费总计
@@ -24,7 +29,7 @@ contract StatisticService {
         // cl_02 预留2
         // cl_03 预留3
         tableFactory = TableFactory(0x1001); 
-        tableFactory.createTable(TABLE_NAME_STATICSTIC, "statistic", "total_user,total_nodeBookkeepping,total_produceAssetsValue,total_initValue,cl_01,cl_02,cl_03");
+        tableFactory.createTable(table_name, "statistic", "total_user,total_nodeBookkeepping,total_produceAssetsValue,total_initValue,cl_01,cl_02,cl_03");
         init(); // 初始化数据
     }
     
@@ -36,7 +41,7 @@ contract StatisticService {
     	    无
     */
     function init() private returns(int256) {
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("total_user", uint256(0));
         entry.set("total_nodeBookkeepping", uint256(0));
@@ -57,7 +62,7 @@ contract StatisticService {
             用户总数
     */
     function getTotalUser() public view returns(uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Entries entries = table.select("statistic", table.newCondition());
         Entry entry = entries.get(0);
@@ -75,7 +80,7 @@ contract StatisticService {
     */
     function setTotalUser() public returns(int256) {
         int256 ret_code = 0;
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         uint256 _per = getTotalUser();
         entry.set("total_user",  _per + 1);
@@ -97,7 +102,7 @@ contract StatisticService {
             节点记账费总计
     */
     function getTotalNodeBookkeepping() public view returns(uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Entries entries = table.select("statistic", table.newCondition());
         Entry entry = entries.get(0);
@@ -115,7 +120,7 @@ contract StatisticService {
     function setTotalNodeBookkeepping(uint256 nodeBookkeepping) public returns(int256) {
         uint256 _per = getTotalNodeBookkeepping(); // 查询此前的节点记账费统计
         int256 ret_code = 0;
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("total_nodeBookkeepping", _per += nodeBookkeepping );
         int count = table.update("statistic", entry, table.newCondition());
@@ -136,7 +141,7 @@ contract StatisticService {
             用户创生资产总计
     */
     function getTotalProduceAssetsValue() public view returns(uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Entries entries = table.select("statistic", table.newCondition());
         Entry entry = entries.get(0);
@@ -154,7 +159,7 @@ contract StatisticService {
     function setTotalProduceAssetsValue(uint256 produceAssetsValue) public returns(int256) {
         uint256 _per = getTotalProduceAssetsValue(); // 查询此前的节点记账费统计
         int256 ret_code = 0;
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("total_produceAssetsValue", _per += produceAssetsValue );
         int count = table.update("statistic", entry, table.newCondition());
@@ -175,7 +180,7 @@ contract StatisticService {
             通链总计创始价值
     */
     function getTotalInitValue() public view returns(uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Entries entries = table.select("statistic", table.newCondition());
         Entry entry = entries.get(0);
@@ -193,7 +198,7 @@ contract StatisticService {
     function setTotalInitValue(uint256 initValue) public returns(int256) {
         uint256 _per = getTotalInitValue(); // 查询此前的通链创始价值总计
         int256 ret_code = 0;
-        Table table = tableFactory.openTable(TABLE_NAME_STATICSTIC);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("total_initValue", _per += initValue );
         int count = table.update("statistic", entry, table.newCondition());

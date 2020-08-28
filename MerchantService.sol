@@ -1,6 +1,7 @@
 pragma solidity ^0.4.25;
 import "./Table.sol";
 import "./ConstantDef.sol";
+import "./TableNameDef.sol";
 
 /*
     商户服务合约
@@ -9,7 +10,9 @@ contract MerchantService {
 
     ConstantDef constantDef;
     TableFactory tableFactory;
-    string constant TABLE_NAME_MERCHANT = "merchant_202008191640";
+    TableNameDef tableNameDef;
+    
+    string table_name;
     
     event eventPutMerchant(string status,string remark);
     event eventUpdateMerchantNewUserValue(string status,string remark);
@@ -18,6 +21,8 @@ contract MerchantService {
     constructor() public {
         
         constantDef = new ConstantDef(); // 初始化通用合约
+        tableNameDef = new TableNameDef();
+        table_name = tableNameDef.constantMerchantService();
         
         // merchant 商户通用标识
         // merchantId 商户id
@@ -28,7 +33,7 @@ contract MerchantService {
         // status 状态 0 正常；1 不可用
         // addTime 添加时间
         tableFactory = TableFactory(0x1001); 
-        tableFactory.createTable(TABLE_NAME_MERCHANT, "merchant", "merchantId,merchantNameShort,asset_value,newUserValue,merchantHash,status,addTime");
+        tableFactory.createTable(table_name, "merchant", "merchantId,merchantNameShort,asset_value,newUserValue,merchantHash,status,addTime");
     }
     
      /*
@@ -48,7 +53,7 @@ contract MerchantService {
             return -1;
         }
         
-        Table table = tableFactory.openTable(TABLE_NAME_MERCHANT);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("merchantId", merchantId);
         entry.set("merchantNameShort",merchantNameShort);
@@ -84,7 +89,7 @@ contract MerchantService {
             1 ： 商户已存在；
     */
     function getMerchant(string merchantId,string merchantHash) public view returns(int256) {
-        Table table = tableFactory.openTable(TABLE_NAME_MERCHANT);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("merchantId",merchantId);
@@ -107,7 +112,7 @@ contract MerchantService {
             1 ： 商户已存在；
     */
     function getNewUserValue(string merchantId) public view returns(uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_MERCHANT);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("merchantId",merchantId);
@@ -127,7 +132,7 @@ contract MerchantService {
     */
     function updateMerchantNewUserValue(string merchantId,uint tonglianIniValue) public returns (int256) {
         uint256 _pre = getNewUserValue(merchantId);
-        Table table = tableFactory.openTable(TABLE_NAME_MERCHANT);
+        Table table = tableFactory.openTable(table_name);
         Entry entry0 = table.newEntry();
         entry0.set("newUserValue", _pre += tonglianIniValue);
         Condition condition = table.newCondition();

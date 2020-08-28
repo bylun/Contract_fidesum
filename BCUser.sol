@@ -2,16 +2,18 @@ pragma solidity ^0.4.25;
 
 import "./Table.sol";
 import "./ConstantDef.sol";
+import "./TableNameDef.sol";
 import "./StatisticService.sol";
 
 contract BCUser {
     
     ConstantDef constantDef;
+    TableNameDef tableNameDef;
     StatisticService statisticService;
+    
+    string table_name;
     string public constant asset_name = "ERC20 Token -> TongBei";
     string public constant asset_symbol = "TB";
-    
-    string constant TABLE_NAME_BCUSER = "BCUser_202008191640";
     
     event eventForRegisterUser(string status,string remark);
     event eventForProduceAssetsValue(string status,string remark);
@@ -21,9 +23,11 @@ contract BCUser {
     
     constructor() public {
         constantDef = new ConstantDef();
+        tableNameDef = new TableNameDef();
         statisticService = new StatisticService();
+        table_name = tableNameDef.constantBCUser();
         tableFactory = TableFactory(0x1001); 
-        tableFactory.createTable(TABLE_NAME_BCUSER, "bcuser", "userId,asset_value,userHash,addTime");
+        tableFactory.createTable(table_name, "bcuser", "userId,asset_value,userHash,addTime");
     }
     
     /*
@@ -46,7 +50,7 @@ contract BCUser {
         
         // 2、增加数据
         int256 ret_code = 0;
-        Table table = tableFactory.openTable(TABLE_NAME_BCUSER);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("userId", userId);
         entry.set("userHash", userHash);
@@ -86,7 +90,7 @@ contract BCUser {
             return (-1, asset_value);
         }
         // 2、查询用户资产
-        Table table = tableFactory.openTable(TABLE_NAME_BCUSER);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("userId",userId);
@@ -108,7 +112,7 @@ contract BCUser {
             用户存在返回1，不存在返回0	
     */
     function isExistUser(string userId) public constant returns(int256) {
-        Table table = tableFactory.openTable(TABLE_NAME_BCUSER);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("userId",userId);
@@ -129,7 +133,7 @@ contract BCUser {
             	参数二： 第一个参数为0时有效，用户属性hash
     */
     function getUserHash(string userId) public constant returns(int256, string) {
-        Table table = tableFactory.openTable(TABLE_NAME_BCUSER);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("userId",userId);
@@ -163,7 +167,7 @@ contract BCUser {
             return ret_code; 
         }
         
-        Table table = tableFactory.openTable(TABLE_NAME_BCUSER);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         // 累计用户创生资产到用户账户，资产转入价值同人民币单位'分'
         entry.set("asset_value", (chain_ret_asset_value += assetValue));

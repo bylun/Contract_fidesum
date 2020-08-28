@@ -2,6 +2,7 @@ pragma solidity ^0.4.25;
 pragma experimental ABIEncoderV2;
 import "./Table.sol";
 import "./ConstantDef.sol";
+import "./TableNameDef.sol";
 import "./StatisticService.sol";
 import "./NodeBookkeeppingDetail.sol";
 
@@ -11,10 +12,12 @@ import "./NodeBookkeeppingDetail.sol";
 contract NodeService {
     
     ConstantDef constantDef;
+    TableNameDef tableNameDef;
     StatisticService statisticService;
     NodeBookkeeppingDetail nodeBookkeeppingDetail;
     TableFactory tableFactory;
-    string constant TABLE_NAME_NODEACCOUNT = "node_service_202008191640";
+    
+    string table_name;
     
     event eventPutNode(string status,string remark);
     event eventUpdateNodeStatus(string status,string remark);
@@ -24,8 +27,11 @@ contract NodeService {
     // 初始化
     constructor() public {
         constantDef = new ConstantDef(); // 初始化通用合约
+        tableNameDef = new TableNameDef();
         statisticService = new StatisticService(); // 统计服务合约
         nodeBookkeeppingDetail = new NodeBookkeeppingDetail();
+        
+        table_name = tableNameDef.constantNodeService();
         
         // node 节点通用标识
         // nodeId 节点id
@@ -36,7 +42,7 @@ contract NodeService {
         // status 状态 0 正常；1 不可用
         // time 添加时间
         tableFactory = TableFactory(0x1001); 
-        tableFactory.createTable(TABLE_NAME_NODEACCOUNT, "node", "nodeId,nodeNameShort,bookkeeping,nodeHash,flag,status,time");
+        tableFactory.createTable(table_name, "node", "nodeId,nodeNameShort,bookkeeping,nodeHash,flag,status,time");
     }
     
     /*
@@ -58,7 +64,7 @@ contract NodeService {
             return -1;
         }
         nodeBookkepping += bookkepping_node; // 累加节点记账费
-        Table table = tableFactory.openTable(TABLE_NAME_NODEACCOUNT);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("bookkeeping", nodeBookkepping);
         Condition condition = table.newCondition();
@@ -119,7 +125,7 @@ contract NodeService {
             参数二： 节点存在时返回对应节点所累积的记账费总额，节点不存在时返回0
     */
     function getBookkeepingValue(string nodeId) public view returns(int256,uint256) {
-        Table table = tableFactory.openTable(TABLE_NAME_NODEACCOUNT);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("nodeId",nodeId);
@@ -149,7 +155,7 @@ contract NodeService {
             emit eventUpdateNodeStatus(constantDef.constant1002(),"error");
             return -1;
         }
-        Table table = tableFactory.openTable(TABLE_NAME_NODEACCOUNT);
+        Table table = tableFactory.openTable(table_name);
 
         Entry entry0 = table.newEntry();
         entry0.set("status", int256(1));
@@ -177,6 +183,7 @@ contract NodeService {
             nodeId 节点id
             nodeNodeShort 节点名称简称
             nodeHash 节点属性hash
+            flag 记账节点类型 0：普通记账节点，1：具有管理性质的记账节点
         返回值：
             参数一： 节点存在返回0，不存在返回-1
     */
@@ -187,7 +194,7 @@ contract NodeService {
             return -1;
         }
         
-        Table table = tableFactory.openTable(TABLE_NAME_NODEACCOUNT);
+        Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("node", "node");
         entry.set("nodeId", nodeId);
@@ -224,7 +231,7 @@ contract NodeService {
             1 ： 节点已存在；
     */
     function getNode(string nodeId,string nodeHash) public view returns(int256) {
-        Table table = tableFactory.openTable(TABLE_NAME_NODEACCOUNT);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("nodeId",nodeId);
@@ -245,9 +252,10 @@ contract NodeService {
             无
         返回值：
             参数一： 有效节点的nodeId数组
+            参数二： 记账节点类型数组
     */
     function getActiveNodes() public view returns(string[],int256[]) {
-        Table table = tableFactory.openTable(TABLE_NAME_NODEACCOUNT);
+        Table table = tableFactory.openTable(table_name);
         // 查询
         Condition condition = table.newCondition();
         condition.EQ("status",int256(0)); // 活动节点状态
