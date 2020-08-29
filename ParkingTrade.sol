@@ -2,21 +2,16 @@ pragma solidity ^0.4.25;
 pragma experimental ABIEncoderV2;
 import "./Table.sol";
 import "./BCUser.sol"; 
-import "./BCManagerUtil.sol";
 import "./BCManager.sol";
 import "./ConstantDef.sol";
 import "./NodeService.sol";
-import "./MerchantService.sol";
 
 contract ParkingTrade {
     
     BCUser bcuser;
     ConstantDef constantDef;
-    BCManagerUtil bcManagerUtil;
     TableFactory tableFactory;
-    BCManager bCManager;
     NodeService nodeService;
-    MerchantService merchantService;
     
     string constant TABLE_NAME = "ParkingTrade_202008191640";
         
@@ -25,10 +20,7 @@ contract ParkingTrade {
     constructor() public {
         bcuser = new BCUser();
         constantDef = new ConstantDef(); // 初始化通用合约
-        bcManagerUtil = new BCManagerUtil();
-        bCManager = new BCManager();
         nodeService = new NodeService();
-        merchantService = new MerchantService();
         tableFactory = TableFactory(0x1001);
         tableFactory.createTable(TABLE_NAME, "trade","userId,amount,trade_hash,addTime");
     }
@@ -117,19 +109,6 @@ contract ParkingTrade {
                 bcuser.produceAssetsValue(userId,amount);
                 // 分配节点记账费
                 nodeService.addNodeBookkepping(userId,trade_hash,bookkepping_node_manager,bookkepping_node_normal); 
-                // 动态计算通链创始价值、区块链维护费
-                uint256 managerInitValue = bCManager.getManagerInitValue();
-                uint256 managerMaintainValue =bCManager.getManagerMaintainValue();
-                (status,_value) = bcManagerUtil.countValue(amount,managerInitValue,managerMaintainValue);
-                if(status){
-                    // 更新通链创始价值
-                    bCManager.updateManagerIniValue(_value);
-                    // 更新商户的新开户奖
-                    merchantService.updateMerchantNewUserValue(merchantId,_value*3);
-                }else {
-                  // 更新区块链维护费
-                  bCManager.updateManagerMaintainValue(_value);
-                }
             }
             emit eventPutTrade(constantDef.constantSuccess(),"success");
             return 0;

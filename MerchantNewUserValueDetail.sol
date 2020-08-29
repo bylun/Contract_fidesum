@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 import "./Table.sol";
 import "./ConstantDef.sol";
 import "./TableNameDef.sol";
+import "./MerchantService.sol";
 
 /*
     商户新开户奖分配明细
@@ -11,6 +12,7 @@ contract MerchantNewUserValueDetail {
     
     ConstantDef constantDef;
     TableNameDef tableNameDef;
+    MerchantService merchantService;
     TableFactory tableFactory;
     
     string table_name;
@@ -22,6 +24,7 @@ contract MerchantNewUserValueDetail {
         
         constantDef = new ConstantDef(); // 初始化通用合约
         tableNameDef = new TableNameDef();
+        merchantService = new MerchantService();
         
         table_name = tableNameDef.constantMerchantNewUserValueDetail();
         
@@ -39,9 +42,26 @@ contract MerchantNewUserValueDetail {
             merchantId 商户标识标识
             newUserValue 新开户奖
         返回值：
-            参数一： 商户存在返回0，不存在返回-1
+            参数一： 
+                 0 : 成功
+                -1 : 商户不存在
+                -2 : 其他异常
+                -3 : 商户开户已超过90天
     */
     function addMerchantNewUserValueDetail(string userId,string trade_hash,string merchantId,uint newUserValue) public returns (int256) {
+        int256 status;
+        uint256 crtTime;
+        (status,crtTime) = merchantService.getMerchantCrtTime(merchantId);
+        if(status == 0){ // 商户存在判断
+            emit eventAddMerchantNewUserValueDetail(constantDef.constant1002(),"error");
+            return -1;
+        }
+        uint256 limitTime = crtTime + 90 days;
+        if(limitTime < now) { // 商户开户90天判断
+            emit eventAddMerchantNewUserValueDetail(constantDef.constantOtherError(),"error");
+            return -3;
+        }
+        
         Table table = tableFactory.openTable(table_name);
         Entry entry = table.newEntry();
         entry.set("userId", userId);
@@ -99,8 +119,5 @@ contract MerchantNewUserValueDetail {
         }
         return (userIds,trade_hashs,newUserValues,addTimes);
     }
-    
-    
-    
     
 }

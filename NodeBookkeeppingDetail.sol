@@ -21,7 +21,7 @@ contract NodeBookkeeppingDetail {
         
         constantDef = new ConstantDef(); // 初始化通用合约
         tableNameDef = new TableNameDef();
-        table_name = tableNameDef.constantStatisticService();
+        table_name = tableNameDef.constantNodeBookkeeppingDetail();
         tableFactory = TableFactory(0x1001); 
         tableFactory.createTable(table_name, "node_bookkepping_detail", "userId,trade_hash,nodeId,bookkepping_node_per,addTime");
     }
@@ -61,7 +61,7 @@ contract NodeBookkeeppingDetail {
         }
         return ret_code;
     } 
-    
+        
     /*
         函数描述：
             查询所有记账费明细
@@ -96,9 +96,5 @@ contract NodeBookkeeppingDetail {
         }
         return (userIds,trade_hashs,nodeIds,bookkepping_node_pers,addTimes);
     }
-    
-    
-    
-    
     
 }

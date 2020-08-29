@@ -13,14 +13,14 @@ contract TableNameDef {
     
     // 初始化
     constructor() public {
-        TABLE_NAME_MERCHANT = "merchant_202008191640";
-        TABLE_NAME_STATICSTIC = "statistic_202008191640";
-        TABLE_NAME_MerchantNewUserValueDetail = "merchant_newUserValue_detail_202008281340";
-        TABLE_NAME_ParkingTrade = "ParkingTrade_202008191640";
-        TABLE_NAME_BCUSER = "BCUser_202008191640";
-        TABLE_NAME_NODE_BOOKKEPPINGDETAIL = "node_bookkepping_detail_202008191640";
-        TABLE_NAME_NODEACCOUNT = "node_service_202008191640";
-        TABLE_NAME_BLOCKCHAIN_MANAGER = "bcmanager_202008191640";
+        TABLE_NAME_MERCHANT = "merchant_202008291040";
+        TABLE_NAME_STATICSTIC = "statistic_202008291040";
+        TABLE_NAME_MerchantNewUserValueDetail = "merchant_newUserValue_detail_202008291040";
+        TABLE_NAME_ParkingTrade = "ParkingTrade_202008291040";
+        TABLE_NAME_BCUSER = "BCUser_202008291040";
+        TABLE_NAME_NODE_BOOKKEPPINGDETAIL = "node_bookkepping_detail_202008291040";
+        TABLE_NAME_NODEACCOUNT = "node_service_202008291040";
+        TABLE_NAME_BLOCKCHAIN_MANAGER = "bcmanager_202008291040";
     }
     
     // 商户服务合约表名
@@ -62,11 +62,6 @@ contract TableNameDef {
     function constantBCManager() public view returns(string) {
         return TABLE_NAME_BLOCKCHAIN_MANAGER;
     }
-    
-    
-    
-    
-    
     
     
 }

@@ -2,6 +2,8 @@ pragma solidity ^0.4.25;
 import "./Table.sol";
 import "./ConstantDef.sol";
 import "./TableNameDef.sol";
+import "./BCManagerUtil.sol";
+import "./MerchantService.sol";
 import "./StatisticService.sol";
 
 /*
@@ -12,6 +14,8 @@ contract BCManager {
     ConstantDef constantDef;
     TableNameDef tableNameDef;
     TableFactory tableFactory;
+    BCManagerUtil bcManagerUtil;
+    MerchantService merchantService;
     StatisticService statisticService;
     
     string table_name;
@@ -25,6 +29,8 @@ contract BCManager {
         
         constantDef = new ConstantDef(); // 初始化通用合约
         tableNameDef = new TableNameDef();
+        bcManagerUtil = new BCManagerUtil();
+        merchantService = new MerchantService();
         statisticService = new StatisticService(); // 初始化统计合约
         
         table_name = tableNameDef.constantBCManager();
@@ -209,6 +215,34 @@ contract BCManager {
         return 0;
     }
     
+    /*
+        函数描述：
+            根据实时交易金额更新区块链创始价值和区块链维护费
+        参数：
+            merchantId 商户id
+            amount 交易金额
+        返回值：
+            修改结果
+    */
+    function countIniValueAndMaintainValue(string merchantId,uint256 amount) public returns (int256) {
+        bool status;
+        uint _value;
+        
+        // 动态计算通链创始价值、区块链维护费
+        uint256 managerInitValue = getManagerInitValue();
+        uint256 managerMaintainValue = getManagerMaintainValue();
+        (status,_value) = bcManagerUtil.countValue(amount,managerInitValue,managerMaintainValue);
+        if(status){
+            // 更新通链创始价值
+            updateManagerIniValue(_value);
+            // 更新商户的新开户奖
+            merchantService.updateMerchantNewUserValue(merchantId,_value*3);
+            return 0;
+        }else {
+          // 更新区块链维护费
+          updateManagerMaintainValue(_value);
+          return 0;
+        }
+    }
+    
 }
-
-

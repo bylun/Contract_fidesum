@@ -104,6 +104,51 @@ contract MerchantService {
     
     /*
         函数描述：
+            查询商户是否存在
+        参数： 
+            merchantId 节点标识
+        返回值：
+            0 ： 商户不存在；
+            1 ： 商户已存在；
+    */
+    function getMerchant(string merchantId) public view returns(int256) {
+        Table table = tableFactory.openTable(table_name);
+        // 查询
+        Condition condition = table.newCondition();
+        condition.EQ("merchantId",merchantId);
+        Entries entries = table.select("merchant", condition);
+        if (0 == uint256(entries.size())) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+    
+    /*
+        函数描述：
+            查询商户登记时间
+        参数： 
+            merchantId 节点标识
+        返回值：
+            参数一：0 ： 商户不存在；1 ： 商户已存在；
+            参数二：商户存在返回登记时间，商户不存在返回0
+    */
+    function getMerchantCrtTime(string merchantId) public view returns(int256,uint256) {
+        int256 res = getMerchant(merchantId);
+        if(res == 0){
+            return (0,0);
+        }
+        Table table = tableFactory.openTable(table_name);
+        // 查询
+        Condition condition = table.newCondition();
+        condition.EQ("merchantId",merchantId);
+        Entries entries = table.select("merchant", condition);
+        Entry entry = entries.get(0);
+        return (1,uint256(entry.getInt("addTime")));
+    }
+    
+    /*
+        函数描述：
             查询商户新开户奖
         参数： 
             merchantId 商户标识
